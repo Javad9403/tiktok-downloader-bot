@@ -22,7 +22,8 @@ export function createTables(db: import('better-sqlite3').Database): void {
     CREATE TABLE IF NOT EXISTS downloads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
-      tiktok_url TEXT NOT NULL,
+      url TEXT NOT NULL,
+      platform TEXT DEFAULT 'tiktok',
       status TEXT DEFAULT 'pending',
       file_size INTEGER,
       error_message TEXT,
@@ -34,10 +35,23 @@ export function createTables(db: import('better-sqlite3').Database): void {
     CREATE INDEX IF NOT EXISTS idx_downloads_user_id ON downloads(user_id);
     CREATE INDEX IF NOT EXISTS idx_downloads_status ON downloads(status);
     CREATE INDEX IF NOT EXISTS idx_downloads_created_at ON downloads(created_at);
+    CREATE INDEX IF NOT EXISTS idx_downloads_platform ON downloads(platform);
 
     CREATE TABLE IF NOT EXISTS migrations (
       version INTEGER PRIMARY KEY,
       applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Migration: add platform column and rename tiktok_url to url if needed
+  const columns = db.prepare("PRAGMA table_info(downloads)").all() as { name: string }[];
+  const hasPlatform = columns.some(c => c.name === 'platform');
+  const hasTiktokUrl = columns.some(c => c.name === 'tiktok_url');
+
+  if (!hasPlatform) {
+    db.exec("ALTER TABLE downloads ADD COLUMN platform TEXT DEFAULT 'tiktok'");
+  }
+  if (hasTiktokUrl && !columns.some(c => c.name === 'url')) {
+    db.exec("ALTER TABLE downloads RENAME COLUMN tiktok_url TO url");
+  }
 }

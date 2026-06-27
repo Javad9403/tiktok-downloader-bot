@@ -4,7 +4,7 @@ import { getDatabase, closeDatabase } from './database';
 import { banCheck } from './middleware/banCheck';
 import { userTracker } from './middleware/userTracker';
 import { startCommand, helpCommand } from './handlers/start';
-import { handleTikTokUrl } from './handlers/download';
+import { handleUrl } from './handlers/download';
 import {
   adminCommand,
   statsCommand,
@@ -42,7 +42,7 @@ bot.on('message:text', async (ctx) => {
     return;
   }
 
-  await handleTikTokUrl(ctx);
+  await handleUrl(ctx);
 });
 
 bot.on('message:photo', async (ctx) => {

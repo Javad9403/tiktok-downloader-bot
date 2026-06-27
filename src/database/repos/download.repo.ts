@@ -1,9 +1,11 @@
 import { getDatabase } from '../index';
+import { Platform } from '../../utils/downloader';
 
 export interface Download {
   id: number;
   user_id: number;
-  tiktok_url: string;
+  url: string;
+  platform: Platform;
   status: 'pending' | 'success' | 'failed';
   file_size: number | null;
   error_message: string | null;
@@ -11,9 +13,9 @@ export interface Download {
   completed_at: string | null;
 }
 
-export function createDownload(userId: number, tiktokUrl: string): Download {
+export function createDownload(userId: number, url: string, platform: Platform = 'tiktok'): Download {
   const db = getDatabase();
-  const result = db.prepare('INSERT INTO downloads (user_id, tiktok_url, status) VALUES (?, ?, ?)').run(userId, tiktokUrl, 'pending');
+  const result = db.prepare('INSERT INTO downloads (user_id, url, platform, status) VALUES (?, ?, ?, ?)').run(userId, url, platform, 'pending');
   return db.prepare('SELECT * FROM downloads WHERE id = ?').get(result.lastInsertRowid) as Download;
 }
 
